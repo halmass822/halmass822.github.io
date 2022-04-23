@@ -11,7 +11,7 @@
         }
     //return tile object by id, searching the generatedTileObjects array
         function getTileObject(inputCoordinate){
-            return generatedTileObjects.filter((x) => x.coordinate = inputCoordinate);
+            return generatedTileObjects.filter((x) => x.coordinate === inputCoordinate)[0];
         }
 
         //checks if coordinates are within the grid boundaries
@@ -37,7 +37,7 @@
             return outputArray;
         }
 
-//
+    //class to represent each tile to limit interactions with the elements
     class tileObject {
         content;
         clickstate;
@@ -68,7 +68,7 @@
         }
         clickTile(){
             if(this.content = "B") {
-                gameOver();
+                //gameOver();
             } else {
                 document.getElementById(this.coordinate).innerText = this.content.toString();
                 if(this.content === "0") {
@@ -77,6 +77,7 @@
                     })
                 }
             }
+            this.clickstate = true;
         }
     }
     //Main functions
@@ -93,7 +94,7 @@
                 output.style.display = 'inline-block';
                 for( i = 0; i < height; i++ ){
                     let row = document.createElement('div');
-                    row.style.height = '32px';
+                    row.style.height = '42px';
                     for( j = 0; j < width; j++){
                         let tileElement = document.createElement('p');
                         //grid is created top-down so the id is calculated such that bottom left grid tile is 11, stored as a string
@@ -108,6 +109,8 @@
                     }
                     output.appendChild(row);
                 }
+                gridWidth = width;
+                gridHeight = height;
                 console.log(`Generated ${width} by ${height} grid`);
                 return output;
             }
@@ -119,15 +122,44 @@
                     let XCoordOfBomb = Math.floor(Math.random() * (gridWidth - 0.999) + 1);
                     let YCoordOfBomb = Math.floor(Math.random() * (gridHeight - 0.999) + 1);
                     let coordOfBomb = digitize(XCoordOfBomb) + digitize(YCoordOfBomb);
-                    document.getElementById(coordOfBomb).innerText = 'B';
+                    getTileObject(coordOfBomb).content = "B";
                     bombLocations.push(coordOfBomb);
                 }
-                generatedTiles.forEach((tile) => {
-                    let tileElement = document.getElementById(tile);
-                    if((tileElement.innerText !== 'B')){
-                        let numOfSurroundingBombs = countSurroundingBombs(tile);
-                        console.log(`net surrounding bombs = ${numOfSurroundingBombs}`);
-                        tileElement.innerText = numOfSurroundingBombs;
-                    }
+                generatedTileObjects.forEach((tileObj) => {
+                    tileObj.countSurroundingBombs();
                 })
             }
+
+document.getElementById('gridContainer').appendChild(generateGrid(10,10));
+gridSetup(10);
+generatedTileObjects.forEach((x) => {
+    x.countSurroundingBombs();
+})
+
+//event listeners
+    //right click to "flag" the tile, turn the color red
+    document.body.addEventListener('contextmenu',(event) => {
+        if(event.target.className === 'gridTile'){
+            let targetObject = getTileObject(event.target.id);
+            if(!targetObject.clickstate){
+                if(event.target.style.backgroundColor !== 'red'){
+                    event.target.style.backgroundColor = 'red';
+                } else {
+                    event.target.style.backgroundColor = 'lightgray';
+                }   
+            }
+        }
+        event.preventDefault();
+        return false;
+    })
+    
+    //right click to trigger target tile object's clickTile()
+    document.body.addEventListener('click',(event) => {
+        if(event.target.className === 'gridTile'){
+            let targetObject = getTileObject(event.target.id);
+            console.log(targetObject);
+            if(!targetObject.clickstate){
+                targetObject.clickTile();
+            }
+        }
+    })
