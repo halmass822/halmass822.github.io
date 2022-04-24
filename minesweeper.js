@@ -184,6 +184,7 @@
 
         //setting up the bomb locations
             var bombLocations = [];
+            var safeLocations;
             function gridSetup(numOfBombs){
                 for(i = 0 ; i < numOfBombs ; i++){
                     let coordOfBomb;
@@ -201,6 +202,8 @@
                 generatedTileObjects.forEach((x) => {
                     x.countSurroundingBombs();
                 })
+                //gets all coordinates that do not contain a bomb, for recognizing a victory
+                safeLocations = generatedTiles.filter((x) => !bombLocations.includes(x));
             }
         
         //sets all tile objects click states to false, content to "", reset innertext and background color and reset the image
@@ -227,6 +230,13 @@
             bombLocations.forEach((x) => revealTile(x,"B"));
             images.forEach((x) => document.getElementById(x).style.display = "none");
             document.getElementById('gameoverImage').style.display = "block";
+        }
+
+        function victory(){
+            gameRunning = false;
+            bombLocations.forEach((x) => revealTile(x,"B"));
+            images.forEach((x) => document.getElementById(x).style.display = "none");
+            document.getElementById('victoryImage').style.display = "block";
         }
 
 document.getElementById('gridContainer').appendChild(generateGrid(10,10));
@@ -260,11 +270,17 @@ document.getElementById('faceImage').style.display = "block";
                     targetObject.clickTile();
                 }
             }
+            if(safeLocations.every((x) => {
+                return getTileObject(x).clickstate;
+            })){
+                victory();
+            }
         }
     })
 
     document.getElementById('gameoverImage').addEventListener('click',startGame);
     document.getElementById('faceImage').addEventListener('click',startGame);
+    document.getElementById('victoryImage').addEventListener('click',startGame);
 
     //trigger the click image on mousedown and reverse on mouseup
     document.getElementById("gridContainer").addEventListener('mousedown',() => {
@@ -288,3 +304,5 @@ document.getElementById('faceImage').style.display = "block";
             document.getElementById(x.coordinate).innerText = x.content;
         })
     }
+
+startGame();
