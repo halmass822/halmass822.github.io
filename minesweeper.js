@@ -41,59 +41,61 @@
 
         //changes the related tile element to show the tile contents at the appropriate color
         function revealTile(coordinate, content) {
-            let outputColor;
-            switch(content) {
-                case "1":
-                    outputColor = "blue";
-                    document.getElementById(coordinate).innerText = content; 
-                    document.getElementById(coordinate).style.color = outputColor; 
-                break;
-                case "2":
-                    outputColor = "green";
-                    document.getElementById(coordinate).innerText = content; 
-                    document.getElementById(coordinate).style.color = outputColor; 
-                break;
-                case "3":
-                    outputColor = "red";
-                    document.getElementById(coordinate).innerText = content; 
-                    document.getElementById(coordinate).style.color = outputColor; 
-                break;
-                case "4":
-                    outputColor = "dark-blue";
-                    document.getElementById(coordinate).innerText = content; 
-                    document.getElementById(coordinate).style.color = outputColor; 
-                break;
-                case "5":
-                    outputColor = "dark-red";
-                    document.getElementById(coordinate).innerText = content; 
-                    document.getElementById(coordinate).style.color = outputColor; 
-                break;
-                case "6":
-                    outputColor = "pink";
-                    document.getElementById(coordinate).innerText = content; 
-                    document.getElementById(coordinate).style.color = outputColor; 
-                break;
-                case "7":
-                    outputColor = "yellow";
-                    document.getElementById(coordinate).innerText = content; 
-                    document.getElementById(coordinate).style.color = outputColor; 
-                break;
-                case "8":
-                    outputColor = "purple";
-                    document.getElementById(coordinate).innerText = content; 
-                    document.getElementById(coordinate).style.color = outputColor; 
-                break;
-                case "B":
-                    outputColor = "black"
-                    document.getElementById(coordinate).innerText = content; 
-                    document.getElementById(coordinate).style.color = outputColor; 
-                break;
-                case "0":
-                    document.getElementById(coordinate).style.backgroundColor = "#B2B8B8";
-                    outputColor = "black";
-                break;
-                default:
-                    throw `coordinate ${coordinate} content ${content}`
+            if(content){
+                let outputColor;
+                switch(content) {
+                    case "1":
+                        outputColor = "blue";
+                        document.getElementById(coordinate).innerText = content; 
+                        document.getElementById(coordinate).style.color = outputColor; 
+                    break;
+                    case "2":
+                        outputColor = "green";
+                        document.getElementById(coordinate).innerText = content; 
+                        document.getElementById(coordinate).style.color = outputColor; 
+                    break;
+                    case "3":
+                        outputColor = "red";
+                        document.getElementById(coordinate).innerText = content; 
+                        document.getElementById(coordinate).style.color = outputColor; 
+                    break;
+                    case "4":
+                        outputColor = "dark-blue";
+                        document.getElementById(coordinate).innerText = content; 
+                        document.getElementById(coordinate).style.color = outputColor; 
+                    break;
+                    case "5":
+                        outputColor = "dark-red";
+                        document.getElementById(coordinate).innerText = content; 
+                        document.getElementById(coordinate).style.color = outputColor; 
+                    break;
+                    case "6":
+                        outputColor = "pink";
+                        document.getElementById(coordinate).innerText = content; 
+                        document.getElementById(coordinate).style.color = outputColor; 
+                    break;
+                    case "7":
+                        outputColor = "yellow";
+                        document.getElementById(coordinate).innerText = content; 
+                        document.getElementById(coordinate).style.color = outputColor; 
+                    break;
+                    case "8":
+                        outputColor = "purple";
+                        document.getElementById(coordinate).innerText = content; 
+                        document.getElementById(coordinate).style.color = outputColor; 
+                    break;
+                    case "B":
+                        outputColor = "black"
+                        document.getElementById(coordinate).innerText = content; 
+                        document.getElementById(coordinate).style.color = outputColor; 
+                    break;
+                    case "0":
+                        document.getElementById(coordinate).style.backgroundColor = "#B2B8B8";
+                        outputColor = "black";
+                    break;
+                    default:
+                        throw `coordinate ${coordinate} content ${content}`
+                }
             }
         }
 
@@ -130,9 +132,9 @@
         }
         clickTile(){
             this.clickstate = true;
+            document.getElementById(this.coordinate).backgroundColor = "lightgray"
             if(this.content === "B") {
-                console.log('gameOver()');
-                bombLocations.forEach((x) => revealTile(x,"B"));
+                gameOver();
             } else {
                 revealTile(this.coordinate,this.content);
                 if(this.content === "0") {
@@ -200,52 +202,83 @@
                     x.countSurroundingBombs();
                 })
             }
-
-        //sets all tile objects click states to false, content to null, reset innertext and background color and reset the image
+        
+        //sets all tile objects click states to false, content to "", reset innertext and background color and reset the image
+        var images = ['faceImage','clickImage','gameoverImage','victoryImage']; //array with all the image ids
+        var difficulty = 10; //to be changed later when adding different difficulties
+        var gameRunning = false;
         function startGame(){
-            
-        } 
+            console.log(`startGame() triggered`);
+            bombLocations = [];
+            generatedTileObjects.forEach((x) => {
+                x.clickstate = false;
+                x.content = "";
+                document.getElementById(x.coordinate).style.backgroundColor = "lightgray";
+                document.getElementById(x.coordinate).innerText = "";
+            });
+            images.forEach((x) => document.getElementById(x).style.display = "none");
+            document.getElementById('faceImage').style.display = "block";
+            gridSetup(difficulty);
+            gameRunning = true;
+        }
+
+        function gameOver(){
+            gameRunning = false;
+            bombLocations.forEach((x) => revealTile(x,"B"));
+            images.forEach((x) => document.getElementById(x).style.display = "none");
+            document.getElementById('gameoverImage').style.display = "block";
+        }
 
 document.getElementById('gridContainer').appendChild(generateGrid(10,10));
-gridSetup(10);
 document.getElementById('faceImage').style.display = "block";
 
 //event listeners
     //right click to "flag" the tile, turn the color red
     document.body.addEventListener('contextmenu',(event) => {
-        if(event.target.className === 'gridTile'){
-            let targetObject = getTileObject(event.target.id);
-            if(!targetObject.clickstate){
-                if(event.target.style.backgroundColor !== 'red'){
-                    event.target.style.backgroundColor = 'red';
-                } else {
-                    event.target.style.backgroundColor = 'lightgray';
-                }   
+        if(gameRunning){
+            if(event.target.className === 'gridTile'){
+                let targetObject = getTileObject(event.target.id);
+                if(!targetObject.clickstate){
+                    if(event.target.style.backgroundColor !== 'red'){
+                        event.target.style.backgroundColor = 'red';
+                    } else {
+                        event.target.style.backgroundColor = 'lightgray';
+                    }   
+                }
             }
+            event.preventDefault();
+            return false;
         }
-        event.preventDefault();
-        return false;
     })
     
     //right click to trigger target tile object's clickTile()
     document.body.addEventListener('click',(event) => {
-        if(event.target.className === 'gridTile'){
-            let targetObject = getTileObject(event.target.id);
-            if(!targetObject.clickstate){
-                targetObject.clickTile();
+        if(gameRunning){
+            if(event.target.className === 'gridTile'){
+                let targetObject = getTileObject(event.target.id);
+                if(!targetObject.clickstate){
+                    targetObject.clickTile();
+                }
             }
         }
     })
 
+    document.getElementById('gameoverImage').addEventListener('click',startGame);
+    document.getElementById('faceImage').addEventListener('click',startGame);
+
     //trigger the click image on mousedown and reverse on mouseup
     document.getElementById("gridContainer").addEventListener('mousedown',() => {
-        document.getElementById('faceImage').style.display = "none";
-        document.getElementById('clickImage').style.display = "block";
+        if(gameRunning){
+            document.getElementById('faceImage').style.display = "none";
+            document.getElementById('clickImage').style.display = "block";
+        }
     })
 
     document.getElementById("gridContainer").addEventListener("mouseup",() => {
-        document.getElementById('clickImage').style.display = "none";
-        document.getElementById('faceImage').style.display = "block";
+        if(gameRunning){
+            document.getElementById('clickImage').style.display = "none";
+            document.getElementById('faceImage').style.display = "block";
+        }
     })
 
 //debugging functions
